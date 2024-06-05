@@ -58,10 +58,7 @@
         <param name="tf45" value="true"/>
   </node>
 
-   <node name="rviz" pkg="rviz" type="rviz"
+   <!-- <node name="rviz" pkg="rviz" type="rviz"
       args="-d $(find so3_quadrotor_simulator)/config/rviz.rviz"
-      />
+      /> -->
  </launch>
-
-
-

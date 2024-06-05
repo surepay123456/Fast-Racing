@@ -1,4 +1,5 @@
 #include <Eigen/Geometry>
+#include <iostream>
 #include <nav_msgs/Odometry.h>
 #include <quadrotor_msgs/SO3Command.h>
 #include <quadrotor_simulator/Quadrotor.h>
@@ -235,20 +236,20 @@ main(int argc, char** argv)
   n.param("quadrotor_name", quad_name, std::string("quadrotor"));
 
   QuadrotorSimulator::Quadrotor::State state = quad.getState();
-
+  std::cout << "Initial state: " << std::endl << state.R << std::endl;
   ros::Rate    r(simulation_rate);
   const double dt = 1 / simulation_rate;
 
   Control control;
 
   nav_msgs::Odometry odom_msg;
-  odom_msg.header.frame_id = "/simulator";
+  odom_msg.header.frame_id = "simulator";
   odom_msg.child_frame_id  = "/" + quad_name;
 
   sensor_msgs::Imu imu;
-  imu.header.frame_id = "/simulator";
+  imu.header.frame_id = "simulator";
 
-  /*
+  
   command.force[0] = 0;
   command.force[1] = 0;
   command.force[2] = quad.getMass()*quad.getGravity() + 0.1;
@@ -262,7 +263,7 @@ main(int argc, char** argv)
   command.kOm[0] = 0.15;
   command.kOm[1] = 0.15;
   command.kOm[2] = 0.15;
-  */
+
 
   ros::Time next_odom_pub_time = ros::Time::now();
   while (n.ok())
@@ -311,6 +312,7 @@ stateToOdomMsg(const QuadrotorSimulator::Quadrotor::State& state,
   odom.pose.pose.position.z = state.x(2);
 
   Eigen::Quaterniond q(state.R);
+  // std::cout << state.R << std::endl;
   odom.pose.pose.orientation.x = q.x();
   odom.pose.pose.orientation.y = q.y();
   odom.pose.pose.orientation.z = q.z();

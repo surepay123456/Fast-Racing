@@ -1,5 +1,12 @@
 #include<plan_manage/se3_planner.h>
 
+/*
+    构造阶段
+    1. 初始化列表：读取config, 初始化visualize 其中的几个可视化pub, 初始化jps_pathfinder
+    2. 初始化point_cloud_sub_，用于接收点云地图 callback函数中将点云转换为obs_pointer 用作飞行走廊生成
+    3. map_util 用于构建地图， 有个单独的点云sub 用于接收地图， 可选择构建grid 还是 esdf
+    4. 初始化jps的param参数 并且传入map_util地图
+*/
 MavGlobalPlanner::MavGlobalPlanner(Config &conf, ros::NodeHandle &nh_)
     : config(conf), nh(nh_),
       visualization(config, nh),

@@ -104,6 +104,7 @@ include_directories(
   ${Boost_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${OCTOMAP_INCLUDE_DIRS}
+  ~/fast-racing/devel/include
 )
 
 add_library(airsim_settings_parser src/airsim_settings_parser.cpp)
@@ -123,6 +124,8 @@ target_link_libraries(airsim_node airsim_ros ${catkin_LIBRARIES} AirLib)
 add_executable(airsim_map_node src/airsim_map_node.cpp)
 target_link_libraries(airsim_map_node airsim_ros ${catkin_LIBRARIES} AirLib ${PCL_LIBRARIES} ${OCTOMAP_LIBRARIES})
 
+add_executable(virtual_map_node src/virtual_map_node.cpp)
+target_link_libraries(virtual_map_node  ${catkin_LIBRARIES}  ${PCL_LIBRARIES} ${OCTOMAP_LIBRARIES})
 
 add_executable(pd_position_controller_simple_node src/pd_position_controller_simple_node.cpp)
 target_link_libraries(pd_position_controller_simple_node pd_position_controller_simple airsim_ros ${catkin_LIBRARIES} AirLib)

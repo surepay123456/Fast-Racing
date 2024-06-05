@@ -1,5 +1,7 @@
 #include "ros/ros.h"
 #include "airsim_ros_wrapper.h"
+#include <Eigen/src/Core/Matrix.h>
+#include <Eigen/src/Geometry/Quaternion.h>
 #include <ros/spinner.h>
 #include <iostream>
 #include <pcl/io/pcd_io.h>
@@ -36,7 +38,7 @@
 using namespace octomap;
 using namespace octomap_msgs;
 using namespace octomap_server;
-ros::Publisher  airsim_map_pub;
+ros::Publisher  virtual_map_pub;
 sensor_msgs::PointCloud2 globalMap_pcd;
 pcl::PointCloud<pcl::PointXYZ> cloudMap;
 //octree
@@ -56,11 +58,11 @@ int main(int argc, char ** argv)
                 0,0,-1;
     nh.param("host_ip", host_ip,std::string("localhost"));
     nh.param("resolution",resolution,0.1);
-    nh.param("world_frame_id",world_frameid,std::string("/world_enu"));
+    nh.param("world_frame_id",world_frameid,std::string("world_enu"));
     nh.param("use_octree",use_octree,false);
     if(use_octree)
       server_drone = new OctomapServer(private_nh, nh,world_frameid);
-    airsim_map_pub   = nh.advertise<sensor_msgs::PointCloud2>("/airsim_global_map", 1);  
+    virtual_map_pub   = nh.advertise<sensor_msgs::PointCloud2>("/airsim_global_map", 1);  
     msr::airlib::RpcLibClientBase airsim_client_map_(host_ip);
     airsim_client_map_.confirmConnection();
     vector<string> objects_list;
@@ -73,6 +75,41 @@ int main(int argc, char ** argv)
           if(use_octree)
             server_drone->m_octree->clear();
           objects_list = airsim_client_map_.simListSceneObjects("Cube.*");
+          // // 人为设置  objects_list 
+          // Eigen::Vector3d wall_position;
+          // Eigen::Vector3d wall_scale;
+          // Eigen::Quaterniond wall_q;
+          // Eigen::Matrix3d wall_body2world;
+          // wall_position << 0, 5, 1;
+          // wall_scale << 10, 1, 6;
+          // wall_q = Eigen::Quaterniond(1,0,0,0);
+          // //wall_q逆时针旋转90度
+          // Eigen::AngleAxisd rollAngle(0.5*M_PI, Eigen::Vector3d::UnitX());
+          // wall_q = rollAngle*wall_q;
+          // wall_body2world = wall_q.toRotationMatrix();
+          // double lx,ly,lz;
+          // for(lx = -wall_scale.x()/2; lx<wall_scale.x()/2+resolution;lx+=resolution){
+          //   for(ly = -wall_scale.y()/2; ly<wall_scale.y()/2+resolution;ly+=resolution){
+          //       for(lz = -wall_scale.z()/2; lz<wall_scale.z()/2+resolution;lz+=resolution){
+          //           Eigen::Vector3d obs_body;
+          //           obs_body << lx,ly,lz;
+          //           Eigen::Vector3d obs_world;
+          //           obs_world = obs_body+wall_position;
+          //           pcl::PointXYZ pt;
+          //           pt.x = obs_world[0];
+          //           pt.y = obs_world[1];
+          //           pt.z = obs_world[2];
+          //           cloudMap.points.push_back(pt); 
+          //           geometry_msgs::Point32 cpt;
+          //           cpt.x = pt.x;
+          //           cpt.y = pt.y;
+          //           cpt.z = pt.z;
+          //           if(use_octree)
+          //             server_drone->m_octree->updateNode(point3d(pt.x+1e-5,pt.y+1e-5,pt.z+1e-5), true);
+          //       }
+          //   }
+          // }
+
           for(int i =0;i<objects_list.size();i++){  
               msr::airlib::Pose cube_pose;
               msr::airlib::Vector3r cube_scale;
@@ -87,7 +124,7 @@ int main(int argc, char ** argv)
               q.x() = cube_pose.orientation.x();
               q.y() = cube_pose.orientation.y();
               q.z() = cube_pose.orientation.z();
-              if(world_frameid==std::string("/world_enu")){
+              if(world_frameid==std::string("world_enu")){
                   position<<cube_pose.position.y(),cube_pose.position.x(),-cube_pose.position.z();
                   body2world = enutoned*q.toRotationMatrix();
               }
@@ -131,7 +168,7 @@ int main(int argc, char ** argv)
           cloudMap.is_dense = true;
           pcl::toROSMsg(cloudMap, globalMap_pcd);
           globalMap_pcd.header.frame_id = world_frameid; 
-          airsim_map_pub.publish(globalMap_pcd);
+          virtual_map_pub.publish(globalMap_pcd);
           ROS_INFO("send global map");
         }
         rate.sleep();

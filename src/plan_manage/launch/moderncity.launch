@@ -34,7 +34,7 @@
       <param name="map/y_size" value="160" type="double"/>
       <!-- <param name="map/x_size" value="170" type="double"/> -->
       <!-- <param name="map/y_size" value="400" type="double"/> -->
-      <param name="world_frame_id" value="/world_enu" type="string"/>
+      <param name="world_frame_id" value="world_enu" type="string"/>
       <param name="use_esdf" value="false" type="bool"/>
       <param name="host_ip" type="string" value="$(arg host)" />
 

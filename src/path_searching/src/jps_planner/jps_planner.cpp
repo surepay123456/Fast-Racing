@@ -10,7 +10,7 @@ JPSPlanner<Dim>::JPSPlanner(bool verbose): planner_verbose_(verbose) {
 
 template<int Dim>
 void JPSPlanner<Dim>::setParam(ros::NodeHandle& nh){
-  nh.param("world_frame_id",world_frame_id,std::string("/world_enu"));
+  nh.param("world_frame_id",world_frame_id,std::string("world_enu"));
   /*visualization*/
   rawpath_jps_pub_ = nh.advertise<nav_msgs::Path>("/rawpath_jps_vis",1);
   optipath_jps_pub_ = nh.advertise<nav_msgs::Path>("/optipath_jps_vis",1);

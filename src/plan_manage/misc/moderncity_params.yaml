@@ -1,6 +1,6 @@
 MapTopic:                   '/random_complex/global_map'
 TargetTopic:                '/move_base_simple/goal'
-OdomFrame:                  '/world_enu'
+OdomFrame:                  'world_enu'
 # 14 12
 #18 16
 # 21 18

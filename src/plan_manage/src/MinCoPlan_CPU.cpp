@@ -1,14 +1,28 @@
 #include<plan_manage/se3_planner.h>
 #include<se3gcopter/se3gcopter_cpu.hpp>
 void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::MatrixXd &finState,vector<Eigen::Vector3d>* wp_list){
-    if(!has_map||!jps_pathfinder.has_map_()) return;
+    /*
+    step 1: JPS 获取路径 
+    step 2: decomp_util 生成飞行走廊
+    step 3" se3gcopter 进行轨迹生成
+    */
+    
+    if(!has_map||!jps_pathfinder.has_map_()) {
+        ROS_ERROR("No map is set!");
+        return;
+    }
     Vector3d zeroVec(0.0,0.0,0.0);
     Vector3d start_pt;
     Vector3d end_pt;
     start_pt = iniState.col(0);
     end_pt  = finState.col(0);
     vec_Vec3f path;
-    if(!wp_list){
+        /*
+            1. 如果没有中间waypoints，直接搜索起点到终点的路径
+            2. 依次生成路径，请注意每次生成的路径起点与上一次路径终点是重复的,所以要pop_back()
+        */
+        // 坑: 这里wp_list即使是空的也是一个指针，所以不能直接判断是否为空
+    if(wp_list->empty()){
         double t1 = ros::Time::now().toSec();
         jps_pathfinder.plan(Vecf<3>(start_pt[0],start_pt[1],start_pt[2]),Vecf<3>(end_pt[0],end_pt[1],end_pt[2]),1,false);
         double t2 = ros::Time::now().toSec();
@@ -23,7 +37,7 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
             vec_Vec3f tmp_path;
             jps_pathfinder.plan(Vecf<3>((*wp_list)[i][0],(*wp_list)[i][1],(*wp_list)[i][2]),Vecf<3>((*wp_list)[i+1][0],(*wp_list)[i+1][1],(*wp_list)[i+1][2]),1,false);
             tmp_path = jps_pathfinder.getSamplePath();
-            path_0.pop_back();
+            path_0.pop_back(); // 将最后一个点去掉 不与下一段路径的起始点重复
             path_0.insert(path_0.end(),tmp_path.begin(),tmp_path.end());
         }
         vec_Vec3f end_path;
@@ -34,6 +48,15 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
         path_0.insert(path_0.end(),end_path.begin(),end_path.end());
         path = path_0;
     }
+
+        /*
+            1. decomp_util设置障碍物点云以及走廊local bbox 
+            2. 选择线段为走廊生成种子， 在未遮挡时路径线段生成走廊
+            3. 查询到走廊中路径点离边界最近的点
+            4. 以此点和初始点加权作为下一次搜索种子的起点，加权的目的是相邻走廊获得重叠
+            5. 限制走廊限制上下方边界
+            6. 将走廊数据转换为vector<MatrixXd>格式 每一列是法向量和点来表示一个指向性平面
+        */
     EllipsoidDecomp3D decomp_util;
     decomp_util.set_obs(*obs_pointer);
     decomp_util.set_local_bbox(Eigen::Vector3d(config.polyhedronBox(0),
@@ -43,6 +66,7 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
     vec_E<Ellipsoid3D> ellips; 
     for(int i = 0;i<path.size()-1;){
         //find the farest unblocked point
+        //最长的未遮挡路径线段
         int k;
         for(k = i+1;k<path.size();k++){
             if(map_util->isBlocked(path[i],path[k])||((path[i]-path[k]).norm()>=4.0)){
@@ -54,6 +78,7 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
             k = i+1;
         }
         if(k>=path.size()) k = path.size()-1;
+        // 以i和k为端点的线段为种子 生成一个多面体
         vec_Vec3f line;
         line.push_back(path[i]);
         line.push_back(path[k]);
@@ -78,11 +103,11 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
             break;
         }
         int wp;
-        wp = round((1*i+4*j)/5);
+        wp = round((1*i+4*j)/5); //裁剪飞行走廊方法，不然都没得走廊相交区域咯
         i = wp;
     }
     std::cout << "Number of polyhedra from map: " << decompPolys.size() << std::endl;
-    for (size_t i = 0; i < decompPolys.size(); i++)
+    for (size_t i = 0; i < decompPolys.size(); i++) //限制上下方边界
     {
         decompPolys[i].add(Hyperplane3D(Eigen::Vector3d(0.0, 0.0, config.mapHeight),
                                           Eigen::Vector3d(0.0, 0.0, 1.0)));
@@ -111,6 +136,11 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
     }
     std::cout<<"--------------------------------------------\n";
     std::chrono::high_resolution_clock::time_point tic = std::chrono::high_resolution_clock::now();
+
+        /*
+            
+        */
+
     SE3GCOPTER nonlinOpt;
     Trajectory traj;
     ROS_INFO("Begin to optimize the traj~");

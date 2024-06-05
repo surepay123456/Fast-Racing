@@ -88,7 +88,7 @@ public:
   typedef octomap_msgs::GetOctomap OctomapSrv;
   typedef octomap_msgs::BoundingBoxQuery BBXSrv;
 
-  OctomapServer(const ros::NodeHandle private_nh_ = ros::NodeHandle("~"),const ros::NodeHandle &nh_ = ros::NodeHandle(),const std::string frame_id =  "/world_enu");
+  OctomapServer(const ros::NodeHandle private_nh_ = ros::NodeHandle("~"),const ros::NodeHandle &nh_ = ros::NodeHandle(),const std::string frame_id =  "world_enu");
   virtual ~OctomapServer();
   virtual bool octomapBinarySrv(OctomapSrv::Request  &req, OctomapSrv::GetOctomap::Response &res);
   virtual bool octomapFullSrv(OctomapSrv::Request  &req, OctomapSrv::GetOctomap::Response &res);

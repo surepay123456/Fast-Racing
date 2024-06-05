@@ -6,9 +6,9 @@
          output="screen">
      <param name="rate/odom" value="100.0"/>
 
-     <param name="simulator/init_state_x" value="-5.0"/>
+     <param name="simulator/init_state_x" value="0.0"/>
      <param name="simulator/init_state_y" value=" 0.0"/>
-     <param name="simulator/init_state_z" value=" 3"/>
+     <param name="simulator/init_state_z" value=" 1.0"/>
      <remap from="~odom" to="/visual_slam/odom"/>
      <remap from="~cmd" to="so3_cmd"/>
      <remap from="~imu" to="sim/imu"/>
@@ -17,6 +17,15 @@
    </node>
  
    <!-- Controller -->  
+   <!-- 
+    外部输入： odom 位置信息 默认的是有扰动的odom
+             position_cmd 期望位置 上层规划器用这两个接口即可 
+    输出：
+             motors 电机
+             corrections 修正
+             so3_cmd 期望姿态
+             imu 传感器信息
+    -->
    <node pkg="nodelet"
      type="nodelet"
      args="standalone so3_control/SO3ControlNodelet"
@@ -24,7 +33,7 @@
      required="true"
      output="screen">
      <remap from="~odom" to="/state_ukf/odom"/>
-     <remap from="~position_cmd" to="/drone_node/position_cmd"/>
+     <remap from="~position_cmd" to="/position_cmd"/>
      <remap from="~motors" to="motors"/>
      <remap from="~corrections" to="corrections"/>
      <remap from="~so3_cmd" to="so3_cmd"/>
@@ -37,7 +46,7 @@
      <param name="gains/rot/z" value="1.0"/>    
      <param name="gains/ang/z" value="0.1"/>        
    </node>  
- 
+   <!-- 建立里程计扰动 -->
    <node pkg="so3_disturbance_generator"
          name="so3_disturbance_generator"
          type="so3_disturbance_generator"       
@@ -49,7 +58,7 @@
      <remap from="~moment_disturbance" to="moment_disturbance"/>            
    </node>
  
-   <!-- Visualization -->
+   <!-- Visualization 阔以在rviz中看到小飞机 -->
    <node pkg="odom_visualization"
          name="odom_visualization_ukf"
          type="odom_visualization"       
@@ -60,10 +69,14 @@
      <param name="color/g" value="0.0"/>        
      <param name="color/b" value="0.0"/>       
      <param name="covariance_scale" value="100.0"/>       
+     <param name="frame_id" value="world"/>
    </node>
 
-   <node name="rviz" pkg="rviz" type="rviz"
+   <!-- <node name="rviz" pkg="rviz" type="rviz"
       args="-d $(find so3_quadrotor_simulator)/config/rviz.rviz"
-      />
- </launch>
+      /> -->
 
+    <node pkg="tf" type="static_transform_publisher" name="sim_to_world" args="0 0 0 0 0 0 simulator world 100"/>
+
+
+ </launch>

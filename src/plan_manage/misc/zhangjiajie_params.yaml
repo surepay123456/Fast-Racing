@@ -1,6 +1,6 @@
 MapTopic:                   '/random_complex/global_map'
 TargetTopic:                '/move_base_simple/goal'
-OdomFrame:                  '/world_enu'
+OdomFrame:                  'world_enu'
 # 14 12
 #18 16
 # 21 18
@@ -11,6 +11,7 @@ PolyhedronBox:              [4.0, 4.0, 2.5]
 Rho:                        1000.0
 TotalT:                     0.0
 QdIntervals:                48 
+# 水平与垂直半长
 HorizHalfLen:               0.5
 VertHalfLen:                0.15
 SafeMargin:                 0.08

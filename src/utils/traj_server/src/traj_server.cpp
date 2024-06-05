@@ -21,7 +21,7 @@
 using namespace std;
 #define PI acos(-1)
 #define HOVER_SEG_NUM 1000
-#define hover_yaw PI/2
+#define hover_yaw 0
 const int  _DIM_x = 0;
 const int  _DIM_y = 1;
 const int  _DIM_z = 2;
@@ -224,7 +224,7 @@ public:
         // #1. store the odometry
         _odom = odom;
         _vis_cmd.header = _odom.header;
-        _vis_cmd.header.frame_id = "/world_enu";
+        _vis_cmd.header.frame_id = "world_enu";
 
         if(state == INIT )
         {
@@ -235,7 +235,7 @@ public:
             _cmd.position.z = 1.0;
             
             _cmd.header.stamp = _odom.header.stamp;
-            _cmd.header.frame_id = "/world_enu";
+            _cmd.header.frame_id = "world_enu";
             //_cmd.trajectory_flag = _traj_flag;
             _cmd.trajectory_flag = quadrotor_msgs::PositionCommand::TRAJECTORY_STATUS_READY;
 
@@ -265,6 +265,7 @@ public:
         // change the order between #2 and #3. zxzxzxzx
         
         // #2. try to calculate the new state
+        //到时间了就停下来了
         if (state == TRAJ && ( (odom.header.stamp - _start_time).toSec() / mag_coeff > (_final_time - _start_time).toSec() ) )
         {
             state = HOVER;
@@ -280,7 +281,12 @@ public:
         //ROS_WARN("[SERVER] Recevied The Trajectory with %.3lf.", _start_time.toSec());
         //ROS_WARN("[SERVER] Now the odom time is : ");
         // #1. try to execuse the action
-        
+        /*
+            1. 加入新的轨迹 -> TRAJ
+            2. 中止当前轨迹 -> HOVER
+            3. 轨迹标记为不可能状态 -> HOVER
+            4. 紧急停止 -> HOVER
+        */ 
         if (traj.action == quadrotor_msgs::PolynomialTrajectory::ACTION_ADD)
         {   
 
@@ -292,17 +298,17 @@ public:
             state        = TRAJ;
             _traj_flag = quadrotor_msgs::PositionCommand::TRAJECTORY_STATUS_READY;
             _traj_id = traj.trajectory_id;
-            _n_segment = traj.num_segment;
+            _n_segment = traj.num_segment; //段数
             _final_time = _start_time = traj.header.stamp;
-            _time.resize(_n_segment);
+            _time.resize(_n_segment); //时间段
 
             _order.clear();
             _normalizedcoeflist.clear();
             for (int idx = 0; idx < _n_segment; ++idx)
             {
-                _final_time += ros::Duration(traj.time[idx]);
-                _time(idx) = traj.time[idx];
-                _order.push_back(traj.order[idx]);
+                _final_time += ros::Duration(traj.time[idx]); //总时间
+                _time(idx) = traj.time[idx]; //每个段的时间
+                _order.push_back(traj.order[idx]); //每个段的阶数
             }
 
             _start_yaw = traj.start_yaw;
@@ -358,7 +364,7 @@ public:
         if (state == INIT) return;
         if (state == HOVER)
         {
-            if (_cmd.header.frame_id != "/world_enu"){
+            if (_cmd.header.frame_id != "world_enu"){
                 _cmd.position = _odom.pose.pose.position;
             }
            
@@ -367,7 +373,7 @@ public:
             //hzc
                 
             _cmd.header.stamp = _odom.header.stamp;
-            _cmd.header.frame_id = "/world_enu";
+            _cmd.header.frame_id = "world_enu";
             _cmd.trajectory_flag = _traj_flag;
             if(emegency_flag){
                 if(ec==0){
@@ -393,19 +399,20 @@ public:
             _cmd.jerk.x = 0.0;
             _cmd.jerk.y = 0.0;
             _cmd.jerk.z = 0.0;
+            // 发布p v a j 
         }
         // #2. locate the trajectory segment
         if (state == TRAJ)
         {
             _cmd.header.stamp = _odom.header.stamp;
 
-            _cmd.header.frame_id = "/world_enu";
+            _cmd.header.frame_id = "world_enu";
             _cmd.trajectory_flag = _traj_flag;
             _cmd.trajectory_id = _traj_id;
-
+            //计算目前的时间在轨迹上的索引点
             double t = max(0.0, (_odom.header.stamp - _start_time).toSec());// / mag_coeff;;
         // #3. calculate the desired states
-            int seg_idx;
+            int seg_idx; //当前时间在轨迹段的索引
             double dur;
             for (seg_idx = 0;
              seg_idx < _n_segment &&
@@ -495,7 +502,7 @@ public:
         
         _vis_vel.ns = "vel";
         _vis_vel.id = 0;
-        _vis_vel.header.frame_id = "/world_enu";
+        _vis_vel.header.frame_id = "world_enu";
         _vis_vel.type = visualization_msgs::Marker::ARROW;
         _vis_vel.action = visualization_msgs::Marker::ADD;
         _vis_vel.color.a = 1.0;
@@ -547,7 +554,7 @@ public:
 
         _vis_acc.ns = "acc";
         _vis_acc.id = 0;
-        _vis_acc.header.frame_id = "/world_enu";
+        _vis_acc.header.frame_id = "world_enu";
         _vis_acc.type = visualization_msgs::Marker::ARROW;
         _vis_acc.action = visualization_msgs::Marker::ADD;
         _vis_acc.color.a = 1.0;

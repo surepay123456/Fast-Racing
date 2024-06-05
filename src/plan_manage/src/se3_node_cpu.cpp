@@ -33,11 +33,17 @@ int main(int argc, char **argv)
     enutoned << 0,1,0,
                 1,0,0,
                 0,0,-1;
+    /*
+    1. 使用airsim_client的接口 获得途径gate 和终点gate的位置
+    2. waypoints_sub 用于启动全局规划器
+    3. 全局规划期接下来会计算路径
+    
+    */
     msr::airlib::RpcLibClientBase airsim_client(host_ip);
     airsim_client.confirmConnection();
 
     /*obtain the gate center pose*/
-
+    //获得每个gate 的位置
     std::vector<string> gates_list;
     gates_list = airsim_client.simListSceneObjects("gate.*");
     int gate_num = gates_list.size()/4;
@@ -97,9 +103,7 @@ void rcvWaypointsCallback(const nav_msgs::Path & wp)
     ROS_INFO("[node] receive the planning target");
     initState <<start_pos,Zero3d,Zero3d;
     finState <<target_pt,Zero3d,Zero3d;
-    // glbPlanner->plan(initState,finState,&wp_list);
     glbPlanner->plan(initState,finState,&gate_list);
-    // glbPlanner->plan(initState,finState);
 }
 void odom_callback(const nav_msgs::Odometry::ConstPtr& odom)
 {

@@ -34,6 +34,7 @@ Quadrotor::Quadrotor(void)
   // state_.x << 40.0, -60.0, 10.0;
   state_.v         = Eigen::Vector3d::Zero();
   state_.R         = Eigen::Matrix3d::Identity();
+  std::cout << " init state_.R: " << state_.R << std::endl;
   state_.omega     = Eigen::Vector3d::Zero();
   state_.motor_rpm = Eigen::Array4d::Zero();
 
@@ -443,6 +444,7 @@ Quadrotor::updateInternalState(void)
   internal_state_[19] = state_.motor_rpm(1);
   internal_state_[20] = state_.motor_rpm(2);
   internal_state_[21] = state_.motor_rpm(3);
+  // std::cout << "set pos: " <<  state_.R << std::endl;
 }
 
 Eigen::Vector3d

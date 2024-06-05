@@ -44,6 +44,7 @@ include_directories(
     ${AIRSIM_ROOT}/AirLib/include
     # ${AIRSIM_ROOT}/MavLinkCom/include
     # ${AIRSIM_ROOT}/MavLinkCom/common_utils
+    ~/fast-racing/devel/include
 )
 
 
@@ -93,6 +94,15 @@ if(ENABLE_CUDA)
     ${catkin_LIBRARIES}
     AirLib
   )
+
+  add_executable(se3_node_simcpu
+      src/se3_node_simcpu.cpp
+      src/se3_planner.cpp  
+      src/MinCoPlan_CPU.cpp
+  )
+  target_link_libraries(se3_node_simcpu
+    ${catkin_LIBRARIES}  
+  )
 else(ENABLE_CUDA)
   catkin_package(
     INCLUDE_DIRS include
@@ -107,6 +117,14 @@ else(ENABLE_CUDA)
   target_link_libraries(se3_node
     ${catkin_LIBRARIES}
     AirLib
+  )
+  add_executable(se3_node_simcpu
+      src/se3_node_simcpu.cpp
+      src/se3_planner.cpp  
+      src/MinCoPlan_CPU.cpp
+  )
+  target_link_libraries(se3_node_simcpu
+    ${catkin_LIBRARIES}  
   )
 
 endif(ENABLE_CUDA)
