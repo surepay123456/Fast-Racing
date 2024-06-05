@@ -1,0 +1,60 @@
+<launch>
+  <arg name="host" default="localhost" />
+  <arg name="use_octree" value="true" />
+
+  <!--  启动仿真器 -->
+  <!-- <include file="$(find so3_quadrotor_simulator)/launch/simulator.lanuch">
+  </include> -->
+  
+  <include file="$(find so3_quadrotor_simulator)/launch/simulator.launch"></include>
+
+  <!--  启动虚拟点云-->
+  <!-- <include file="$(find octomap_server)/launch/octomap_server.launch">
+    <arg name="use_octree" value="$(arg use_octree)" />
+    TODO: 设置虚拟点云发布话题和 world frame
+    </include> -->
+
+  <include file="$(find airsim_ros_pkgs)/launch/virtual_map.launch">
+    <arg name="host" value="$(arg host)" />
+    <arg name="use_octree" value="$(arg use_octree)" />
+  </include>
+
+  <!-- waypoint callback to trigger the planner-->
+  <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
+    <remap from="~goal" to="/goal" />
+    <param name="waypoint_type" value="manual-lonely-waypoint" />
+  </node>
+
+  <!-- 启动traj_server 接受se3的轨迹 并且执行 -->
+  <include file="$(find traj_server)/launch/traj_server.launch">
+    <!-- INFO: 设置odom话题 -->
+    <arg name="odom" value="/visual_slam/odom" />
+  </include>
+
+  <!-- se3 planner -->
+  <!-- jps and map -->
+  <node pkg="plan_manage" type="se3_node_simcpu" name="se3_node_simcpu" output="screen">
+    <remap from="~waypoints" to="/waypoint_generator/waypoints" />
+    <remap from="~PointCloud_in" to="/virtual_global_map" />
+    <remap from="~odom" to="/visual_slam/odom" />
+    <remap from="~trajectory" to="/trajectory" />
+    <rosparam file="$(find plan_manage)/misc/zhangjiajie_params.yaml" command="load" />
+
+    <!-- for jps settings and jps map -->
+    <param name="map/z_size" value="2.8" type="double" />
+    <param name="map/x_size" value="70" type="double" />
+    <param name="map/y_size" value="400" type="double" />
+    <param name="world_frame_id" value="world_enu" type="string" />
+    <param name="use_esdf" value="false" type="bool" />
+    <param name="host_ip" type="string" value="$(arg host)" />
+    <param name="jps/resolution" value="0.1" type="double" />
+    <param name="jps/lambda_heu" value="1.0" type="double" />
+    <param name="jps/allocate_num" value="500000" type="double" />
+    <param name="jps/use_gridmap" value="true" type="bool" />
+    <param name="cloud_topic" value="/virtual_global_map" type="string" />
+
+  </node>
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find plan_manage)/rviz/virtual.rviz" />
+
+</launch>

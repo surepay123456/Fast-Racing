@@ -1,0 +1,19 @@
+<launch>
+	<arg name="output" default="log"/>
+	<arg name="publish_clock" default="true"/>
+	<arg name="is_vulkan" default="true"/>
+	<arg name="host" default="localhost" />
+	<arg name="frame" default="world"/>
+ 	<arg name="use_octree" default="true"/>
+
+	<node name="virtual_map_node" pkg="airsim_ros_pkgs" type="virtual_map_node" output="screen">
+		<param name="host_ip" type="string" value="$(arg host)" />
+		<param name="world_frame_id" type="string" value="$(arg frame)" />
+		<param name="resolution" type="double" value="0.1" />
+		<param name="use_octree" type="bool" value="$(arg use_octree)" />
+	</node>
+
+	<!-- Static transforms -->
+	<node pkg="tf" type="static_transform_publisher" name="enu_world_pub" args="0 0 0 0 0 0 world_enu world 100"/>
+	<!-- <include file="$(find airsim_ros_pkgs)/launch/static_transforms.launch"/> -->
+</launch>
