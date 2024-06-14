@@ -1,0 +1,6 @@
+<launch>
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find plan_manage)/rviz/visual_gazebo.rviz" />
+
+
+</launch>

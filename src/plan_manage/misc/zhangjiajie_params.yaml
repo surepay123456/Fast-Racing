@@ -12,10 +12,10 @@ Rho:                        1000.0
 TotalT:                     0.0
 QdIntervals:                48 
 # 水平与垂直半长
-HorizHalfLen:               0.5
+HorizHalfLen:               0.3
 VertHalfLen:                0.15
 SafeMargin:                 0.08
-VelMax:                     14.0
+VelMax:                     4.0
 ThrustAccMin:               5.0
 ThrustAccMax:               12.0
 BodyRateMax:                3.8
