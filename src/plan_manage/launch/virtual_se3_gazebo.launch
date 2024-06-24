@@ -17,6 +17,8 @@
   <include file="$(find airsim_ros_pkgs)/launch/virtual_map.launch">
     <arg name="host" value="$(arg host)" />
     <arg name="use_octree" value="$(arg use_octree)" />
+    <!-- <arg name="use_wall" value="true"/>
+    <arg name="use_circle" value="false"/> -->
   </include>
 
   <!-- waypoint callback to trigger the planner-->
