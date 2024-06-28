@@ -17,5 +17,6 @@
 
 	<!-- Static transforms -->
 	<node pkg="tf" type="static_transform_publisher" name="enu_world_pub" args="0 0 0 0 0 0 world_enu world 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="enu_world_pub" args="0 0 0 0 0 0 moca world 100"/>
 	<!-- <include file="$(find airsim_ros_pkgs)/launch/static_transforms.launch"/> -->
 </launch>
