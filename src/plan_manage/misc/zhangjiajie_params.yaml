@@ -15,7 +15,7 @@ QdIntervals:                48
 HorizHalfLen:               0.5
 VertHalfLen:                0.10
 SafeMargin:                 0.08
-VelMax:                     6.0
+VelMax:                     10.0
 ThrustAccMin:               5.0
 ThrustAccMax:               20.0
 BodyRateMax:                3.8

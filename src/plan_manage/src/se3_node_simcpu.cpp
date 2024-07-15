@@ -39,21 +39,21 @@ int main(int argc, char** argv) {
     // std::vector<string> gates_list;
 
     // 人为设置途径gate 中间路径点
-    // Eigen::Vector3d gate_wp1(3, -2.0, 1);
-    // Eigen::Vector3d gate_wp2(6, 0, 1);
-    // Eigen::Vector3d gate_wp3(3, 1.5, 1);
+    Eigen::Vector3d gate_wp1(3, -2.0, 1);
+    Eigen::Vector3d gate_wp2(6, 0, 1);
+    Eigen::Vector3d gate_wp3(3, 1.5, 1);
     // nh_priv.getParam("gate_wp_x", gate_wp(0));
     // nh_priv.getParam("gate_wp_y", gate_wp(1));
     // nh_priv.getParam("gate_wp_z", gate_wp(2));
     // 设置 各个航点的位置 实际使用的时候根据动捕的实际位置来设置 
     // 拟设置三个圈航点位置  start_pos -> gate1 -> gate2 -> gate3 -> start_pos
     // 
-    // gate_list.push_back(gate_wp1);
-    // gate_list.push_back(gate_wp2);
-    // gate_list.push_back(gate_wp3);
+    gate_list.push_back(gate_wp1);
+    gate_list.push_back(gate_wp2);
+    gate_list.push_back(gate_wp3);
 
-    Eigen::Vector3d gate_wall(2.0, -1.5, 1);
-    gate_list.push_back(gate_wall);
+    // Eigen::Vector3d gate_wall(2.0, -1.5, 1);
+    // gate_list.push_back(gate_wall);
 
     sleep(2);
     ros::Rate rate(100);
@@ -93,8 +93,8 @@ void rcvWaypointsCallback(const nav_msgs::Path& wp) {
     // the lock_guard will be destroyed and the mutex will be unlocked
     // destory the lock_guard
     // }
-    // glbPlanner->plan(initState, initState, &gate_list);
-    glbPlanner->plan(initState, finState, &gate_list);
+    glbPlanner->plan(initState, initState, &gate_list);
+    // glbPlanner->plan(initState, finState, &gate_list);
 }
 
 /*

@@ -1,6 +1,7 @@
 <launch>
   <arg name="host" default="localhost" />
   <arg name="use_octree" value="true" />
+  <!-- change the topic to motion capture -->
   <arg name="odom_topic" value="/world/odom"/>
   <!--  启动虚拟点云-->
   <include file="$(find airsim_ros_pkgs)/launch/virtual_map.launch">
